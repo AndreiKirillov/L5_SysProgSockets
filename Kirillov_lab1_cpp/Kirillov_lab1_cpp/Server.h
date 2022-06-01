@@ -2,11 +2,12 @@
 #include "framework.h"
 #include "Kirillov_lab1_cpp.h"
 #include "ThreadStorage.h"
-#include "PipeOperations.h"
 #include "Connection.h"
 #include <afxsock.h>
 
-__declspec(dllimport) void __stdcall ServerStart();
+__declspec(dllimport) header __stdcall ReadHeader(CSocket& reading_source);
+__declspec(dllimport) std::string __stdcall ReadMessage(CSocket& reading_source, const header& h);
+__declspec(dllimport) void __stdcall SendConfirm(CSocket& sending_sock, const confirm_header& h);
 
 // Класс сервера, который будет обрабатывать подключения клиентов
 class Server

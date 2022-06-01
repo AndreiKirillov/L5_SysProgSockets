@@ -47,6 +47,9 @@ namespace Kirillov_lab1_sharp
         [DllImport("FileMapping.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         private static extern confirm_header WaitForConfirm();
 
+        [DllImport("sockets.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        private static extern header ReadHeader();
+
         [DllImport("FileMapping.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         private static extern void CheckServer();
 

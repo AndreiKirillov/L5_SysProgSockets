@@ -4,7 +4,8 @@
 #include "pch.h"
 #include "framework.h"
 #include "sockets.h"
-#include <iostream>
+#include <string>
+#include <vector>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -70,23 +71,47 @@ BOOL CsocketsApp::InitInstance()
 	return TRUE;
 }
 
-CSocket server;
+// структура для заголовка сообщения
+struct header
+{
+	int event_code;
+	int thread_id;
+	int message_size;
+};
+
+struct confirm_header // заголовок для подтверждения
+{
+	int confirm_status;
+	int threads_count;
+};
+
 CSocket client_socket;
 
-__declspec(dllexport) void __stdcall ServerStart()
+__declspec(dllexport) header __stdcall ReadHeader(CSocket& reading_source)
 {
-	server.Create(12345);
+	header header_from_client;
+	reading_source.Receive(&header_from_client, sizeof(int));
+	return header_from_client;
 }
 
-__declspec(dllexport) void __stdcall WaitForConnection()
+__declspec(dllexport) std::string __stdcall ReadMessage(CSocket& reading_source, const header& h)
 {
-	if (!server.Listen())
-		return;
-	client_socket = 
+	std::vector <char> v(h.message_size);
+
+	reading_source.Receive(&v[0], h.message_size);
+
+	return std::string(&v[0], h.message_size);
 }
 
-
-__declspec(dllexport) void __stdcall test() 
+__declspec(dllexport) void __stdcall SendConfirm(CSocket& sending_sock, const confirm_header& h)     // Функция отправки подтверждения клиенту
 {
-	std::cout << "dll connected";
+	sending_sock.Send(&h, sizeof(confirm_header));
+}
+
+extern "C" 
+{
+	__declspec(dllexport) header __stdcall ReadHeader()   // Чтение заголовка клиентом
+	{
+		return header();
+	}
 }

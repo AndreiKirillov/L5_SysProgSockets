@@ -25,19 +25,22 @@ bool Server::StartUp()
 // Функция обработки подключенного клиента, будет выполняться в потоке. 
 void Server::ProcessClient(SOCKET hSock, int client_id)
 {
-    header check_message = ReadHeader(hPipe);          
+    CSocket client_sock;
+    client_sock.Attach(hSock);
+
+    header check_message = ReadHeader(client_sock);          
     if (check_message.task_code == Task::check_server)      // Отправляем клиенту подтверждение подключения
     {
         confirm_header answer;
         answer.confirm_status = 1;
         answer.threads_count = _working_threads.GetCount();   // клиент сразу узнает, сколько потоков работает
-        SendConfirm(hPipe, answer);
+        SendConfirm(client_sock, answer);
     }
 
     while (true)
     {
         //shared_lock<shared_mutex> read_threads_lock(mtx_for_working_threads);
-        header client_header = ReadHeader(hPipe);
+        header client_header = ReadHeader(client_sock);
         lock_guard<mutex> lock_for_threads(mtx_for_working_threads);
         switch (client_header.task_code)
         {
@@ -57,7 +60,7 @@ void Server::ProcessClient(SOCKET hSock, int client_id)
                 HANDLE thread_msg_event = CreateEventA(NULL, FALSE, FALSE, NULL);
                 if (thread_finish_event == NULL || thread_msg_event == NULL)
                 {
-                    SendConfirm(hPipe, confirm_header{ 0,_working_threads.GetCount() }); // сообщаем клиенту об ошибке
+                    SendConfirm(client_sock, confirm_header{ 0,_working_threads.GetCount() }); // сообщаем клиенту об ошибке
                     break;
                 }
 
@@ -76,7 +79,7 @@ void Server::ProcessClient(SOCKET hSock, int client_id)
             confirm_header header_for_client;
             header_for_client.confirm_status = 1;
             header_for_client.threads_count = _working_threads.GetCount();
-            SendConfirm(hPipe, header_for_client);
+            SendConfirm(client_sock, header_for_client);
         }
         break;
 
@@ -94,22 +97,20 @@ void Server::ProcessClient(SOCKET hSock, int client_id)
                 confirm_header header_for_client;
                 header_for_client.confirm_status = 1;
                 header_for_client.threads_count = _working_threads.GetCount();
-                SendConfirm(hPipe, header_for_client);
+                SendConfirm(client_sock, header_for_client);
             }
             else
-                SendConfirm(hPipe, confirm_header{ 0,_working_threads.GetCount() });
+                SendConfirm(client_sock, confirm_header{ 0,_working_threads.GetCount() });
             
         }
         break;
 
         case Task::process_message:
         {
-            std::string client_message = ReadMessage(hPipe, client_header);  // читаем сообщение из именованного канала
+            std::string client_message = ReadMessage(client_sock, client_header);  // читаем сообщение из именованного канала
             if (client_message == "quit")
             {
-                SendConfirm(hPipe, confirm_header{ 1,0 });
-                DisconnectNamedPipe(hPipe);      // отключение клиента от сервера
-                CloseHandle(hPipe);
+                SendConfirm(client_sock, confirm_header{ 1,0 });
                 CloseClient(client_id);         // Удаляем из хранилища соединений
                 lock_guard<mutex> console_lock(console_mtx);
                 cout << "\tClient ID=" << client_id << " disconnected from server" << endl;
@@ -146,7 +147,7 @@ void Server::ProcessClient(SOCKET hSock, int client_id)
                 {
                     lock_guard<mutex> console_lock(console_mtx);
                     cout << ex.what() << endl;
-                    SendConfirm(hPipe, confirm_header{ 0,_working_threads.GetCount() });    // Сообщаем клиенту об ошибке
+                    SendConfirm(client_sock, confirm_header{ 0,_working_threads.GetCount() });    // Сообщаем клиенту об ошибке
                 }
             }
             }
@@ -154,7 +155,7 @@ void Server::ProcessClient(SOCKET hSock, int client_id)
             confirm_header header_for_client;
             header_for_client.confirm_status = 1;
             header_for_client.threads_count = _working_threads.GetCount();
-            SendConfirm(hPipe, header_for_client);
+            SendConfirm(client_sock, header_for_client);
         }
         }
     }
