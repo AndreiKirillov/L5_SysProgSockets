@@ -11,11 +11,14 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Kirillov_lab1_cpp", "Kirillov_lab1_cpp\Kirillov_lab1_cpp\Kirillov_lab1_cpp.vcxproj", "{3A7C9FA4-4EC2-4987-8B2C-EA268561C339}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5F440C00-42A4-407F-B15D-DEBF9916821A} = {5F440C00-42A4-407F-B15D-DEBF9916821A}
+		{740B446E-866B-4BF3-8805-71D5E94141C6} = {740B446E-866B-4BF3-8805-71D5E94141C6}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileMapping", "FileMapping\FileMapping.vcxproj", "{5F440C00-42A4-407F-B15D-DEBF9916821A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PipeClient", "PipeClient\PipeClient.vcxproj", "{024B7AD7-125E-4C6A-81A4-F3CB190490A0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sockets", "sockets\sockets.vcxproj", "{740B446E-866B-4BF3-8805-71D5E94141C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +72,16 @@ Global
 		{024B7AD7-125E-4C6A-81A4-F3CB190490A0}.Release|x64.Build.0 = Release|x64
 		{024B7AD7-125E-4C6A-81A4-F3CB190490A0}.Release|x86.ActiveCfg = Release|Win32
 		{024B7AD7-125E-4C6A-81A4-F3CB190490A0}.Release|x86.Build.0 = Release|Win32
+		{740B446E-866B-4BF3-8805-71D5E94141C6}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{740B446E-866B-4BF3-8805-71D5E94141C6}.Debug|x64.ActiveCfg = Debug|x64
+		{740B446E-866B-4BF3-8805-71D5E94141C6}.Debug|x64.Build.0 = Debug|x64
+		{740B446E-866B-4BF3-8805-71D5E94141C6}.Debug|x86.ActiveCfg = Debug|Win32
+		{740B446E-866B-4BF3-8805-71D5E94141C6}.Debug|x86.Build.0 = Debug|Win32
+		{740B446E-866B-4BF3-8805-71D5E94141C6}.Release|Any CPU.ActiveCfg = Release|Win32
+		{740B446E-866B-4BF3-8805-71D5E94141C6}.Release|x64.ActiveCfg = Release|x64
+		{740B446E-866B-4BF3-8805-71D5E94141C6}.Release|x64.Build.0 = Release|x64
+		{740B446E-866B-4BF3-8805-71D5E94141C6}.Release|x86.ActiveCfg = Release|Win32
+		{740B446E-866B-4BF3-8805-71D5E94141C6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

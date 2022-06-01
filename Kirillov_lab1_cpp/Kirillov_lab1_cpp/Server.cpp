@@ -6,7 +6,7 @@ extern shared_mutex data_mtx;
 extern shared_ptr<string> ptr_global_message;
 extern HANDLE confirm_finish_of_thread_event;
 
-Server::Server(): _connections(),_working_threads()
+Server::Server(): _server(),_connections(),_working_threads()
 {
 }
 
@@ -14,8 +14,16 @@ Server::~Server()
 {
 }
 
+bool Server::StartUp()
+{
+    if (_server.Create(12345))
+        return true;
+    else
+        return false;
+}
+
 // Функция обработки подключенного клиента, будет выполняться в потоке. 
-void Server::ProcessClient(HANDLE hPipe, int client_id)
+void Server::ProcessClient(SOCKET hSock, int client_id)
 {
     header check_message = ReadHeader(hPipe);          
     if (check_message.task_code == Task::check_server)      // Отправляем клиенту подтверждение подключения
@@ -165,18 +173,24 @@ void Server::CloseClient(int client_id)
 // Функция подключения нового клиента к серверу
 void Server::WaitForConnection()
 {
-    HANDLE hPipe = CreateNamedPipeA("\\\\.\\pipe\\MyPipe_lab4", PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-        PIPE_UNLIMITED_INSTANCES, 1024, 1024, 0, NULL);
-
-    if (!ConnectNamedPipe(hPipe, NULL))
+    if (!_server.Listen())
     {
         std::lock_guard<std::mutex> console_lock(console_mtx);
         std::cout << "Server error connecting to client!" << std::endl;
+        return;
+    }
+    CSocket client;
+
+    if (!_server.Accept(client))
+    {
+        std::lock_guard<std::mutex> console_lock(console_mtx);
+        std::cout << "Server error connecting to client!" << std::endl;
+        return;
     }
     else
     {
         auto new_connection = make_unique<Connection>();                                  // Создаём новое соединение
-        new_connection->Start(&Server::ProcessClient, this, hPipe, new_connection->GetID());    // его обработка запустится в отдельном потоке 
+        new_connection->Start(&Server::ProcessClient, this, client.Detach(), new_connection->GetID());    // его обработка запустится в отдельном потоке 
         _connections.insert(std::move(new_connection));
     }
 }

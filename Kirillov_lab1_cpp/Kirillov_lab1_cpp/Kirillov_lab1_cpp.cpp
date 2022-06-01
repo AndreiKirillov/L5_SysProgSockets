@@ -114,6 +114,7 @@ void CloseAllObjects(list<HANDLE> handles)    // Освобождение рус
         CloseHandle(event);
     }
 }
+__declspec(dllimport) void __stdcall test();
 
 int main()
 {
@@ -132,9 +133,17 @@ int main()
         }
         else
         {
+            test();
             setlocale(LC_ALL, "Russian");
 
             Server main_server;
+
+            if (!main_server.StartUp())
+            {
+                cout << "\tServer can not start!" << endl;
+                cin;
+                return;
+            }
 
             ptr_global_message = make_shared<string>(); // память под будущие сообщения
 
