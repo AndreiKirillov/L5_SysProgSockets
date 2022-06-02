@@ -84,7 +84,7 @@ void ThreadFunction(int thread_id, HANDLE finish_event, HANDLE receive_msg_event
 
                     // вывод в файл
                     ofstream outfile;
-                    outfile.open("C:/repository/SysProg/L4_SysProg/OutputData/" + to_string(thread_id) + ".txt");
+                    outfile.open("C:/repository/SysProg/L5_SysProg/OutputData/" + to_string(thread_id) + ".txt");
                     if (outfile.is_open())
                     {
                         outfile << "Message size: " << received_message->size() << endl;

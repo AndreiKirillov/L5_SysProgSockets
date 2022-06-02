@@ -16,6 +16,7 @@ Server::~Server()
 
 bool Server::StartUp()
 {
+    AfxSocketInit();
     if (_server.Create(12345))
         return true;
     else
@@ -28,7 +29,7 @@ void Server::ProcessClient(SOCKET hSock, int client_id)
     CSocket client_sock;
     client_sock.Attach(hSock);
 
-    header check_message = ReadHeader(client_sock);          
+    header check_message = ReadHeader(client_sock);
     if (check_message.task_code == Task::check_server)      // Отправляем клиенту подтверждение подключения
     {
         confirm_header answer;
@@ -46,9 +47,6 @@ void Server::ProcessClient(SOCKET hSock, int client_id)
         {
         case Task::start_thread:         // Событие создания потока
         {
-            //read_threads_lock.mutex()->unlock_shared();
-            //lock_guard<shared_mutex> update_threads_lock(mtx_for_working_threads);
-
             // Создаём столько потоков, сколько было в запросе
             for (int request_thrd_count = 0; request_thrd_count < client_header.message_size; request_thrd_count++)
             {
@@ -191,6 +189,9 @@ void Server::WaitForConnection()
     else
     {
         auto new_connection = make_unique<Connection>();                                  // Создаём новое соединение
+        //ProcessClient(client.Detach(), new_connection->GetID());
+        //thread t = thread(&Server::ProcessClient, this, client.Detach(), new_connection->GetID());
+        //t.join();
         new_connection->Start(&Server::ProcessClient, this, client.Detach(), new_connection->GetID());    // его обработка запустится в отдельном потоке 
         _connections.insert(std::move(new_connection));
     }

@@ -4,8 +4,10 @@
 #include "pch.h"
 #include "framework.h"
 #include "sockets.h"
+#include <afxsock.h>
 #include <string>
 #include <vector>
+#include <memory>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -62,12 +64,6 @@ BOOL CsocketsApp::InitInstance()
 {
 	CWinApp::InitInstance();
 
-	if (!AfxSocketInit())
-	{
-		AfxMessageBox(IDP_SOCKETS_INIT_FAILED);
-		return FALSE;
-	}
-
 	return TRUE;
 }
 
@@ -85,33 +81,75 @@ struct confirm_header // заголовок для подтверждения
 	int threads_count;
 };
 
-CSocket client_socket;
+std::shared_ptr<CSocket> client_socket;
 
-__declspec(dllexport) header __stdcall ReadHeader(CSocket& reading_source)
-{
-	header header_from_client;
-	reading_source.Receive(&header_from_client, sizeof(int));
-	return header_from_client;
-}
-
-__declspec(dllexport) std::string __stdcall ReadMessage(CSocket& reading_source, const header& h)
-{
-	std::vector <char> v(h.message_size);
-
-	reading_source.Receive(&v[0], h.message_size);
-
-	return std::string(&v[0], h.message_size);
-}
-
-__declspec(dllexport) void __stdcall SendConfirm(CSocket& sending_sock, const confirm_header& h)     // Функция отправки подтверждения клиенту
-{
-	sending_sock.Send(&h, sizeof(confirm_header));
-}
+//__declspec(dllexport) header __stdcall ReadHeader(CSocket& reading_source)
+//{
+//	header header_from_client;
+//
+//	reading_source.Receive(&header_from_client, sizeof(int));
+//	return header_from_client;
+//}
+//
+//__declspec(dllexport) std::string __stdcall ReadMessage(CSocket& reading_source, const header& h)
+//{
+//	std::vector <char> v(h.message_size);
+//
+//	reading_source.Receive(&v[0], h.message_size);
+//
+//	return std::string(&v[0], h.message_size);
+//}
+//
+//__declspec(dllexport) void __stdcall SendConfirm(CSocket& sending_sock, const confirm_header& h)     // Функция отправки подтверждения клиенту
+//{
+//	sending_sock.Send(&h, sizeof(confirm_header));
+//}
 
 extern "C" 
 {
-	__declspec(dllexport) header __stdcall ReadHeader()   // Чтение заголовка клиентом
+	__declspec(dllexport) bool __stdcall ConnectToServer()
 	{
-		return header();
+		AfxWinInit(::GetModuleHandle(NULL), NULL, ::GetCommandLine(), 0);
+		AfxSocketInit();
+		client_socket = std::make_shared<CSocket>();
+		client_socket->Create();
+		if (!client_socket->Connect("127.0.0.1", 12345))
+		{
+			return false;
+		}
+		return true;
+	}
+
+	__declspec(dllexport) bool __stdcall SendMessageToServer(const char* message, header& msg_header)  
+	{
+		if (client_socket->Send(&msg_header, sizeof(header)) == SOCKET_ERROR)
+			return false;
+
+		if (client_socket->Send(message, msg_header.message_size) == SOCKET_ERROR)
+			return false;
+		else
+			return true;
+	}
+
+	__declspec(dllexport) confirm_header __stdcall WaitForConfirm()
+	{
+		confirm_header confirm;
+
+		int server_answer = client_socket->Receive(&confirm, sizeof(confirm_header));
+		if (server_answer == SOCKET_ERROR || server_answer == 0)
+			return confirm_header{ 0,0 };
+		else
+			return confirm;
+	}
+
+	__declspec(dllexport) void __stdcall CheckServer()
+	{
+		header request{ 3, 0, 0 };
+		client_socket->Send(&request, sizeof(header));
+	}
+
+	__declspec(dllexport) void __stdcall DisconnectFromServer()
+	{
+		client_socket->Close();
 	}
 }

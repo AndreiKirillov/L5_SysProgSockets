@@ -38,20 +38,20 @@ namespace Kirillov_lab1_sharp
     {
         // подключаем dll функции для связи с сервером
 
-        [DllImport("FileMapping.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("sockets.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         private static extern bool ConnectToServer();
 
-        [DllImport("FileMapping.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("sockets.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         private static extern bool SendMessageToServer(StringBuilder message, ref header h);
 
-        [DllImport("FileMapping.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("sockets.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         private static extern confirm_header WaitForConfirm();
 
         [DllImport("sockets.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        private static extern header ReadHeader();
-
-        [DllImport("FileMapping.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         private static extern void CheckServer();
+
+        [DllImport("sockets.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        private static extern void DisconnectFromServer();
 
         private int count_threads = 0;
         private bool is_connected = false;
@@ -230,6 +230,7 @@ namespace Kirillov_lab1_sharp
                     {
                         if(message.ToString() == "quit")
                         {
+                            DisconnectFromServer();
                             is_connected = false;
                             listbox_threads.Items.Clear();
                             count_threads = 0;
@@ -255,6 +256,7 @@ namespace Kirillov_lab1_sharp
                 request.thread_id = 0;
                 request.message_size = message.Length;
                 SendMessageToServer(message, ref request);
+                DisconnectFromServer();
             }
         }
 
